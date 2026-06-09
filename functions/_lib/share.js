@@ -18,6 +18,10 @@ export function getBearerToken(request) {
   return match ? match[1] : "";
 }
 
+export function isAdminRequest(request, env) {
+  return Boolean(env.ADMIN_TOKEN) && timingSafeEqualString(getBearerToken(request), env.ADMIN_TOKEN);
+}
+
 export function timingSafeEqualString(a, b) {
   const left = new TextEncoder().encode(a);
   const right = new TextEncoder().encode(b);
@@ -48,6 +52,10 @@ export function normalizeFileName(fileName) {
     return "shared.html";
   }
   return fileName.replace(/[^\w.\-()[\] ]+/g, "_").slice(0, 120) || "shared.html";
+}
+
+export function isValidShareId(id) {
+  return typeof id === "string" && /^[0-9a-f]{32}$/.test(id);
 }
 
 export function createShareId(randomValues = crypto.getRandomValues.bind(crypto)) {
@@ -104,6 +112,37 @@ export async function buildShareRecord({ fileName, html, password, now = new Dat
     passwordAlgorithm: "PBKDF2-SHA-256",
     passwordIterations: PASSWORD_ITERATIONS,
     createdAt: now.toISOString()
+  };
+}
+
+export function buildShareMetadata(record) {
+  return {
+    id: record.id,
+    fileName: record.fileName,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt || record.createdAt,
+    passwordUpdatedAt: record.passwordUpdatedAt || record.createdAt,
+    bytes: new TextEncoder().encode(record.html || "").length
+  };
+}
+
+export async function updateRecordPassword(record, password, now = new Date()) {
+  const error = assertValidHtmlUpload({ html: record.html || "<html></html>", password });
+  if (error && error.startsWith("password")) {
+    return { error };
+  }
+
+  const salt = createShareId();
+  return {
+    record: {
+      ...record,
+      passwordSalt: salt,
+      passwordHash: await pbkdf2Hex(password, salt),
+      passwordAlgorithm: "PBKDF2-SHA-256",
+      passwordIterations: PASSWORD_ITERATIONS,
+      passwordUpdatedAt: now.toISOString(),
+      updatedAt: now.toISOString()
+    }
   };
 }
 

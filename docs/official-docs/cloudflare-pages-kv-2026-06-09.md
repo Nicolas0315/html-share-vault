@@ -22,6 +22,7 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - Use `wrangler pages deploy public --project-name=html-share-vault` because `wrangler pages publish` is deprecated and current docs point to deploy commands.
 - Add a GitHub Actions workflow using Cloudflare's official `cloudflare/wrangler-action` so deploy can run after repository secrets and variables are configured.
 - Use PBKDF2-SHA-256 with 10,000 iterations so password hashing fits Cloudflare Workers free-tier CPU constraints during upload and password verification. This is below OWASP-style high-sensitivity password-storage guidance and is an intentional tradeoff for low-to-medium sensitivity internal HTML review, paired with a 14-character minimum viewer password. For highly confidential material, move to a paid Workers CPU budget or a stronger authentication/storage design.
+- Use KV `list({ limit, cursor })` for the admin dashboard and store list-safe record metadata on new uploads. Existing records without metadata are still supported by reading the record value during listing.
 
 ## Verification
 
@@ -35,6 +36,7 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - Set `ADMIN_TOKEN` as a Cloudflare Pages secret from a generated value stored in the local 1Password Private vault.
 - Deployed production Pages site at `https://html-share-vault.pages.dev/`.
 - Production smoke test passed: upload returned share ID `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, unauthenticated GET returned the password form, correct password POST returned uploaded HTML, wrong password POST returned 401.
+- Local admin dashboard API smoke test passed: create, list, reset viewer password, reject old password, accept new password, and delete.
 
 ## Risk And Rollback
 

@@ -10,6 +10,18 @@ Production: https://html-share-vault.pages.dev/
 - The app stores the HTML and password hash in a Cloudflare KV namespace.
 - The admin shares `/share/<id>` and the viewer password.
 - Viewers enter the password and then see the uploaded HTML rendered inline.
+- Admin manages uploaded shares from `/admin/`.
+
+## Admin dashboard
+
+Open `/admin/` and enter the same admin token used for uploads. The dashboard can:
+
+- List uploaded HTML shares.
+- Copy share URLs.
+- Reset a viewer password.
+- Delete a share.
+
+Viewer passwords are not displayed because the app only stores salted password hashes.
 
 ## Cloudflare setup
 

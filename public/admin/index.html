@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin - HTML Share Vault</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">HTML Share Vault</p>
+          <h1>管理ダッシュボード</h1>
+        </div>
+        <a class="upload-link" href="/">アップロード</a>
+      </header>
+
+      <section class="auth-panel" id="auth-panel">
+        <label>
+          Admin token
+          <input id="admin-token" type="password" autocomplete="current-password" />
+        </label>
+        <button id="save-token" type="button">接続</button>
+      </section>
+
+      <section class="toolbar">
+        <div class="metric">
+          <span class="metric-label">表示中</span>
+          <strong id="share-count">0</strong>
+        </div>
+        <div class="toolbar-actions">
+          <button id="refresh" type="button">更新</button>
+          <button id="load-more" type="button" disabled>さらに読み込む</button>
+        </div>
+      </section>
+
+      <section class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ファイル</th>
+              <th>作成日</th>
+              <th>サイズ</th>
+              <th>共有URL</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="shares"></tbody>
+        </table>
+        <div class="empty" id="empty">Admin token を入力して接続してください。</div>
+      </section>
+
+      <section class="status" id="status" role="status" aria-live="polite"></section>
+    </main>
+
+    <dialog id="password-dialog">
+      <form method="dialog" class="dialog-body">
+        <h2>viewer password を再設定</h2>
+        <p id="dialog-file"></p>
+        <label>
+          新しい viewer password
+          <input id="new-password" type="password" autocomplete="new-password" minlength="14" required />
+        </label>
+        <div class="dialog-actions">
+          <button id="cancel-password" type="button">キャンセル</button>
+          <button id="confirm-password" type="button">保存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/admin/app.js" type="module"></script>
+  </body>
+</html>

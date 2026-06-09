@@ -1,5 +1,6 @@
 import {
   assertValidHtmlUpload,
+  buildShareMetadata,
   buildShareRecord,
   getBearerToken,
   json,
@@ -30,7 +31,9 @@ export async function onRequestPost({ request, env }) {
 
   const record = await buildShareRecord(body);
   try {
-    await env.HTML_SHARES.put(record.id, JSON.stringify(record));
+    await env.HTML_SHARES.put(record.id, JSON.stringify(record), {
+      metadata: buildShareMetadata(record)
+    });
   } catch {
     return json({ error: "storage error" }, 500);
   }
