@@ -25,6 +25,16 @@ Password-protected HTML sharing for internal review, built for Cloudflare Pages,
    npm run deploy
    ```
 
+## GitHub Actions deploy
+
+The repo includes `.github/workflows/deploy-cloudflare-pages.yml`. To enable it, set these GitHub repository secrets and variables:
+
+- Secret: `CLOUDFLARE_API_TOKEN`
+- Secret: `CLOUDFLARE_ACCOUNT_ID`
+- Variable: `CLOUDFLARE_PAGES_PROJECT_NAME`
+
+The workflow runs `npm run check`, `npm test`, builds Pages Functions, then deploys `public/` with Wrangler. Keep the `HTML_SHARES` KV binding and `ADMIN_TOKEN` Pages secret configured in Cloudflare.
+
 For local development:
 
 ```powershell

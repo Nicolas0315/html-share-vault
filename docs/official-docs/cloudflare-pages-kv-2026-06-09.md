@@ -8,7 +8,9 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - Cloudflare Pages bindings: https://developers.cloudflare.com/pages/functions/bindings/
 - Cloudflare Wrangler commands: https://developers.cloudflare.com/workers/wrangler/commands/
 - Cloudflare Pages direct upload: https://developers.cloudflare.com/pages/get-started/direct-upload/
+- Cloudflare Pages direct upload with CI: https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/
 - Cloudflare KV write API and limits: https://developers.cloudflare.com/kv/api/write-key-value-pairs/
+- Cloudflare Wrangler GitHub Action: https://github.com/cloudflare/wrangler-action
 
 ## Decisions
 
@@ -17,6 +19,7 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - Store one uploaded HTML record per random share ID.
 - Reject uploads above 24 MiB because Workers KV values are limited to 25 MiB.
 - Use `wrangler pages deploy public --project-name=html-share-vault` because `wrangler pages publish` is deprecated and current docs point to deploy commands.
+- Add a GitHub Actions workflow using Cloudflare's official `cloudflare/wrangler-action` so deploy can run after repository secrets and variables are configured.
 
 ## Verification
 
