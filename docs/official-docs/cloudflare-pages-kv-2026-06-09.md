@@ -23,6 +23,7 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - `npm run check`: passed.
 - `npm test`: passed, 4 tests.
 - `npx wrangler pages functions build --outdir .wrangler-build`: compiled Worker successfully.
+- Local Pages dev with `--kv=HTML_SHARES --binding ADMIN_TOKEN=...`: upload returned a share ID, unauthenticated GET returned the password form, correct password POST returned the uploaded HTML, wrong password POST returned 401.
 - `npx wrangler whoami`: not authenticated, so deployment was not attempted.
 
 ## Risk And Rollback

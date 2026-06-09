@@ -29,10 +29,12 @@ For local development:
 
 ```powershell
 npm install
-npm run dev
+npx wrangler pages dev public --compatibility-date=2026-06-09 --kv=HTML_SHARES --binding ADMIN_TOKEN=<local-admin-token>
 ```
 
 Then open `http://localhost:8788`.
+
+Use the same admin token value in the upload form.
 
 ## Security notes
 
