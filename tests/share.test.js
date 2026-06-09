@@ -10,9 +10,9 @@ import {
 } from "../functions/_lib/share.js";
 
 test("validates required upload fields", () => {
-  assert.equal(assertValidHtmlUpload({ html: "", password: "password123" }), "html is required");
-  assert.equal(assertValidHtmlUpload({ html: "<h1>x</h1>", password: "short" }), "password must be at least 8 characters");
-  assert.equal(assertValidHtmlUpload({ html: "<h1>x</h1>", password: "password123" }), "");
+  assert.equal(assertValidHtmlUpload({ html: "", password: "long-password-123" }), "html is required");
+  assert.equal(assertValidHtmlUpload({ html: "<h1>x</h1>", password: "short" }), "password must be at least 14 characters");
+  assert.equal(assertValidHtmlUpload({ html: "<h1>x</h1>", password: "long-password-123" }), "");
 });
 
 test("normalizes unsafe filenames", () => {
@@ -23,10 +23,10 @@ test("hashes and verifies share passwords", async () => {
   const record = await buildShareRecord({
     fileName: "demo.html",
     html: "<h1>demo</h1>",
-    password: "password123"
+    password: "long-password-123"
   });
 
-  assert.equal(await isPasswordValid(record, "password123"), true);
+  assert.equal(await isPasswordValid(record, "long-password-123"), true);
   assert.equal(await isPasswordValid(record, "wrong-password"), false);
 });
 
@@ -34,7 +34,7 @@ test("checks access cookie with constant-time string comparison helper", async (
   const record = await buildShareRecord({
     fileName: "demo.html",
     html: "<h1>demo</h1>",
-    password: "password123"
+    password: "long-password-123"
   });
   const request = new Request("https://example.com/share/id", {
     headers: { cookie: `other=1; html_share_${record.id}=${record.passwordHash}` }

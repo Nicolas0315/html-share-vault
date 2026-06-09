@@ -1,6 +1,6 @@
 const MAX_HTML_BYTES = 24 * 1024 * 1024;
 const PASSWORD_COOKIE_MAX_AGE = 60 * 60 * 8;
-const PASSWORD_ITERATIONS = 210000;
+const PASSWORD_ITERATIONS = 10000;
 
 export function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -37,8 +37,8 @@ export function assertValidHtmlUpload({ html, password }) {
   if (new TextEncoder().encode(html).length > MAX_HTML_BYTES) {
     return "html exceeds the 24 MiB upload limit";
   }
-  if (typeof password !== "string" || password.length < 8) {
-    return "password must be at least 8 characters";
+  if (typeof password !== "string" || password.length < 14) {
+    return "password must be at least 14 characters";
   }
   return "";
 }

@@ -11,6 +11,7 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - Cloudflare Pages direct upload with CI: https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/
 - Cloudflare KV write API and limits: https://developers.cloudflare.com/kv/api/write-key-value-pairs/
 - Cloudflare Wrangler GitHub Action: https://github.com/cloudflare/wrangler-action
+- Cloudflare Workers limits: https://developers.cloudflare.com/workers/platform/limits/
 
 ## Decisions
 
@@ -20,6 +21,7 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - Reject uploads above 24 MiB because Workers KV values are limited to 25 MiB.
 - Use `wrangler pages deploy public --project-name=html-share-vault` because `wrangler pages publish` is deprecated and current docs point to deploy commands.
 - Add a GitHub Actions workflow using Cloudflare's official `cloudflare/wrangler-action` so deploy can run after repository secrets and variables are configured.
+- Use PBKDF2-SHA-256 with 10,000 iterations so password hashing fits Cloudflare Workers free-tier CPU constraints during upload and password verification. This is below OWASP-style high-sensitivity password-storage guidance and is an intentional tradeoff for low-to-medium sensitivity internal HTML review, paired with a 14-character minimum viewer password. For highly confidential material, move to a paid Workers CPU budget or a stronger authentication/storage design.
 
 ## Verification
 

@@ -50,5 +50,7 @@ Use the same admin token value in the upload form.
 
 - This is for trusted internal HTML review. Uploaded HTML is rendered as HTML, so only upload files you trust.
 - The viewer password is never stored directly; the app stores a salted PBKDF2-SHA-256 hash.
+- Viewer passwords must be at least 14 characters.
+- PBKDF2 uses 10,000 iterations to fit Cloudflare Workers free-tier CPU limits. Treat this as a low-to-medium sensitivity internal sharing tool; use a paid Workers plan or a stronger storage/auth design for highly confidential material.
 - Access is remembered for 8 hours with an HttpOnly cookie.
 - KV values are limited to 25 MiB, so this app rejects uploads above 24 MiB.
