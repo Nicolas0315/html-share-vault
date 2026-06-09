@@ -2,6 +2,8 @@
 
 Password-protected HTML sharing for internal review, built for Cloudflare Pages, Pages Functions, and Workers KV.
 
+Production: https://html-share-vault.pages.dev/
+
 ## What it does
 
 - Admin uploads a `.html` file from `/`.
