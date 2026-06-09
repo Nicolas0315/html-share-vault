@@ -22,6 +22,7 @@ Open `/admin/` and enter the same admin token used for uploads. The dashboard ca
 - Delete a share.
 
 Viewer passwords are not displayed because the app only stores salted password hashes.
+New uploads can take a few seconds to appear in the list because Workers KV is eventually consistent.
 
 ## Cloudflare setup
 

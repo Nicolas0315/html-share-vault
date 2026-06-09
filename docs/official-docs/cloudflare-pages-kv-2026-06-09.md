@@ -37,6 +37,7 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - Deployed production Pages site at `https://html-share-vault.pages.dev/`.
 - Production smoke test passed: upload returned share ID `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, unauthenticated GET returned the password form, correct password POST returned uploaded HTML, wrong password POST returned 401.
 - Local admin dashboard API smoke test passed: create, list, reset viewer password, reject old password, accept new password, and delete.
+- Production admin dashboard smoke test passed: `/admin/` static assets returned 200, unauthenticated admin API returned 401, authenticated list returned existing shares, smoke-test share password reset worked, old password was rejected, new password worked, and delete removed the smoke-test share. A separate create/list/delete test passed after an 8-second wait for KV list consistency.
 
 ## Risk And Rollback
 
