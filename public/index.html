@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HTML Share Vault</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <div class="heading">
+          <p class="eyebrow">Internal HTML Sharing</p>
+          <h1>HTML Share Vault</h1>
+        </div>
+
+        <form id="upload-form" class="form">
+          <label>
+            Admin token
+            <input id="admin-token" name="adminToken" type="password" autocomplete="off" required />
+          </label>
+          <label>
+            Viewer password
+            <input id="viewer-password" name="viewerPassword" type="password" autocomplete="new-password" minlength="8" required />
+          </label>
+          <label>
+            HTML file
+            <input id="html-file" name="htmlFile" type="file" accept=".html,.htm,text/html" required />
+          </label>
+          <button type="submit">Upload</button>
+        </form>
+
+        <section id="result" class="result" hidden></section>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
