@@ -14,15 +14,16 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "gitleaks failed" }
 
   $patterns = @(
-    '~',
+    'C:\\Users\\ogosh',
+    'C:/Users/ogosh',
     '/Users/s30519',
     '100\.\d+\.\d+\.\d+',
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    '56ff9e80ac5d2f0c2bc9d680fc7af395',
     'sk-[A-Za-z0-9_-]{20,}',
     'ghp_[A-Za-z0-9_]{20,}'
   )
 
-  $files = git ls-files
+  $files = git ls-files | Where-Object { $_ -ne 'scripts/publish-preflight.ps1' }
   foreach ($pattern in $patterns) {
     $hits = $files | ForEach-Object {
       if (Test-Path -LiteralPath $_) {
