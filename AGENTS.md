@@ -42,7 +42,7 @@ Password-protected HTML sharing on Cloudflare Pages. Runtime is Pages Functions 
 This repo opts into the shared pre-commit hook:
 
 ```bash
-git config core.hooksPath ~\work\agent-context/hooks
+git config core.hooksPath ~/work/agent-context/hooks
 ```
 
 The hook blocks staged `.env`, `*.key`, `*.pem`, `credentials.json`, `token.json`, `*.bak-<ts>*`, and high-confidence secret patterns (`sk-(ant|proj|live)-…`, `AIza…`, `ghp_…`, `gho_…`, `xox[abp]-…`, `AKIA…`, PEM blocks). It also validates JSON syntax for `*.mcp.json`, `*/settings.json`, `package.json`, and Claude plugin manifests.
