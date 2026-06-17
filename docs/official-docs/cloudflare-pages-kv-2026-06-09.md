@@ -30,10 +30,10 @@ Local version: `wrangler@4.98.0` from `npm ls wrangler --depth=0`
 - `npm test`: passed, 4 tests.
 - `npx wrangler pages functions build --outdir .wrangler-build`: compiled Worker successfully.
 - Local Pages dev with `--kv=HTML_SHARES --binding ADMIN_TOKEN=...`: upload returned a share ID, unauthenticated GET returned the password form, correct password POST returned the uploaded HTML, wrong password POST returned 401.
-- Cloudflare login completed with Wrangler OAuth for account `Katala`.
+- Cloudflare login completed with Wrangler OAuth.
 - Created Cloudflare Pages project `html-share-vault`.
 - Created Workers KV namespaces for production and preview and bound production to `HTML_SHARES`.
-- Set `ADMIN_TOKEN` as a Cloudflare Pages secret from a generated value stored in the local 1Password Private vault.
+- Set `ADMIN_TOKEN` as a Cloudflare Pages secret from a generated value stored in the operator's password manager.
 - Deployed production Pages site at `https://html-share-vault.pages.dev/`.
 - Production smoke test passed: upload returned a random share ID, unauthenticated GET returned the password form, correct password POST returned uploaded HTML, wrong password POST returned 401.
 - Local admin dashboard API smoke test passed: create, list, reset viewer password, reject old password, accept new password, and delete.

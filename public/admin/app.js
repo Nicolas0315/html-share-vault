@@ -54,20 +54,45 @@ function render() {
   shareCount.textContent = String(rows.length);
   sharesBody.replaceChildren(...rows.map((share) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>
-        <strong>${share.fileName}</strong>
-        <span>${share.id}</span>
-      </td>
-      <td>${formatDate(share.createdAt)}</td>
-      <td>${formatBytes(share.bytes)}</td>
-      <td><a href="${shareUrl(share)}" target="_blank" rel="noreferrer">開く</a></td>
-      <td class="actions">
-        <button type="button" data-action="copy" data-id="${share.id}">コピー</button>
-        <button type="button" data-action="password" data-id="${share.id}">再設定</button>
-        <button type="button" data-action="delete" data-id="${share.id}" class="danger">削除</button>
-      </td>
-    `;
+
+    const nameCell = document.createElement("td");
+    const fileName = document.createElement("strong");
+    fileName.textContent = share.fileName;
+    const shareId = document.createElement("span");
+    shareId.textContent = share.id;
+    nameCell.append(fileName, shareId);
+
+    const createdCell = document.createElement("td");
+    createdCell.textContent = formatDate(share.createdAt);
+
+    const bytesCell = document.createElement("td");
+    bytesCell.textContent = formatBytes(share.bytes);
+
+    const linkCell = document.createElement("td");
+    const link = document.createElement("a");
+    link.href = shareUrl(share);
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = "開く";
+    linkCell.append(link);
+
+    const actionsCell = document.createElement("td");
+    actionsCell.className = "actions";
+    for (const [label, action, className] of [
+      ["コピー", "copy", ""],
+      ["再設定", "password", ""],
+      ["削除", "delete", "danger"]
+    ]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.action = action;
+      button.dataset.id = share.id;
+      button.textContent = label;
+      if (className) button.className = className;
+      actionsCell.append(button);
+    }
+
+    tr.append(nameCell, createdCell, bytesCell, linkCell, actionsCell);
     return tr;
   }));
   empty.hidden = rows.length > 0;

@@ -1,0 +1,8 @@
+title = "html-share-vault gitleaks allowlist"
+
+[allowlist]
+description = "PBKDF2 algorithm label is not a secret"
+regexTarget = "match"
+regexes = [
+  '''passwordAlgorithm:\s*"PBKDF2-SHA-256"''',
+]
