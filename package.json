@@ -7,9 +7,14 @@
     "dev": "wrangler pages dev public --compatibility-date=2026-06-09 --kv=HTML_SHARES",
     "deploy": "wrangler pages deploy public --project-name=html-share-vault",
     "test": "node --test tests/*.test.js",
+    "e2e": "node scripts/e2e.mjs",
+    "verify": "npm run check && npm test && npm run e2e",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "share": "node scripts/share.mjs",
     "check": "node --check functions/api/upload.js && node --check functions/api/admin/shares.js && node --check functions/api/admin/shares/[id].js && node --check functions/share/[id].js && node --check functions/_lib/share.js"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.8",
     "wrangler": "^4.20.5"
   }
 }
