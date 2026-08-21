@@ -11,6 +11,7 @@ function shareSummaryFromMetadata(metadata, id) {
     createdAt: metadata?.createdAt || "",
     updatedAt: metadata?.updatedAt || metadata?.createdAt || "",
     passwordUpdatedAt: metadata?.passwordUpdatedAt || metadata?.createdAt || "",
+    expiresAt: metadata?.expiresAt || "",
     bytes: metadata?.bytes || 0,
     url: `/share/${id}`
   };

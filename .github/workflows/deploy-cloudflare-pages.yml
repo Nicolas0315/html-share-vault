@@ -29,9 +29,7 @@ jobs:
         run: npm ci
 
       - name: Verify
-        run: |
-          npm run check
-          npm test
+        run: npm run verify
 
       - name: Build Pages Functions
         run: npx wrangler pages functions build --outdir .wrangler-build

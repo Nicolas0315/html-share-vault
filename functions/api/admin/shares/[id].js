@@ -1,8 +1,8 @@
 import {
-  buildShareMetadata,
   isAdminRequest,
   isValidShareId,
   json,
+  putOptions,
   updateRecordPassword
 } from "../../../_lib/share.js";
 
@@ -48,14 +48,13 @@ export async function onRequestPatch({ request, env, params }) {
     return json({ error: result.error }, 400);
   }
 
-  await env.HTML_SHARES.put(params.id, JSON.stringify(result.record), {
-    metadata: buildShareMetadata(result.record)
-  });
+  await env.HTML_SHARES.put(params.id, JSON.stringify(result.record), putOptions(result.record));
 
   return json({
     id: params.id,
     passwordUpdatedAt: result.record.passwordUpdatedAt,
-    updatedAt: result.record.updatedAt
+    updatedAt: result.record.updatedAt,
+    expiresAt: result.record.expiresAt || ""
   });
 }
 

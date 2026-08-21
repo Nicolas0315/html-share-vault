@@ -21,7 +21,8 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify({
         fileName: file.name,
         html: await file.text(),
-        password: viewerPassword
+        password: viewerPassword,
+        expiresInDays: Number(document.querySelector("#expires-in-days").value)
       })
     });
 
@@ -31,10 +32,13 @@ form.addEventListener("submit", async (event) => {
     }
 
     const url = new URL(data.url, window.location.origin).href;
-    result.innerHTML = `
-      <strong>Ready to share</strong>
-      <a href="${url}" target="_blank" rel="noreferrer">${url}</a>
-    `;
+    result.replaceChildren(
+      Object.assign(document.createElement("strong"), { textContent: "Ready to share" }),
+      Object.assign(document.createElement("a"), { href: url, target: "_blank", rel: "noreferrer", textContent: url }),
+      Object.assign(document.createElement("span"), {
+        textContent: `Expires ${new Date(data.expiresAt).toLocaleString("ja-JP")}`
+      })
+    );
   } catch (error) {
     result.className = "result error";
     result.textContent = error.message;

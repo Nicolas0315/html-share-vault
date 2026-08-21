@@ -2,8 +2,11 @@ import {
   buildAccessCookie,
   hasAccessCookie,
   isPasswordValid,
-  passwordForm
+  passwordForm,
+  shareHtmlHeaders
 } from "../_lib/share.js";
+
+const FORM_CSP = "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
 
 async function loadRecord(env, id) {
   const raw = await env.HTML_SHARES.get(id);
@@ -15,19 +18,17 @@ function formResponse(id, error = "", status = 200) {
     status,
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "cache-control": "no-store"
+      "cache-control": "no-store",
+      "content-security-policy": FORM_CSP,
+      "x-content-type-options": "nosniff",
+      "referrer-policy": "no-referrer",
+      "x-robots-tag": "noindex, nofollow, noarchive"
     }
   });
 }
 
-function htmlResponse(record) {
-  return new Response(record.html, {
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "cache-control": "private, no-store",
-      "content-disposition": `inline; filename="${record.fileName.replaceAll('"', "")}"`
-    }
-  });
+function htmlResponse(record, extra = {}) {
+  return new Response(record.html, { headers: shareHtmlHeaders(record, extra) });
 }
 
 export async function onRequestGet({ request, env, params }) {
@@ -55,14 +56,7 @@ export async function onRequestPost({ request, env, params }) {
     return formResponse(record.id, "パスワードが違います。", 401);
   }
 
-  return new Response(record.html, {
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "cache-control": "private, no-store",
-      "content-disposition": `inline; filename="${record.fileName.replaceAll('"', "")}"`,
-      "set-cookie": buildAccessCookie(record.id, record.passwordHash)
-    }
-  });
+  return htmlResponse(record, { "set-cookie": buildAccessCookie(record.id, record.passwordHash) });
 }
 
 export function onRequest() {

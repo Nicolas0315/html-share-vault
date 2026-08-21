@@ -65,6 +65,9 @@ function render() {
     const createdCell = document.createElement("td");
     createdCell.textContent = formatDate(share.createdAt);
 
+    const expiresCell = document.createElement("td");
+    expiresCell.textContent = share.expiresAt ? formatDate(share.expiresAt) : "無期限";
+
     const bytesCell = document.createElement("td");
     bytesCell.textContent = formatBytes(share.bytes);
 
@@ -92,7 +95,7 @@ function render() {
       actionsCell.append(button);
     }
 
-    tr.append(nameCell, createdCell, bytesCell, linkCell, actionsCell);
+    tr.append(nameCell, createdCell, expiresCell, bytesCell, linkCell, actionsCell);
     return tr;
   }));
   empty.hidden = rows.length > 0;

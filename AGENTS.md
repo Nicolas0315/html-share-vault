@@ -13,6 +13,8 @@ Password-protected HTML sharing on Cloudflare Pages. Runtime is Pages Functions 
 - `functions/`: Cloudflare Pages Functions API and share route.
 - `functions/_lib/`: shared validation, hashing, and cookie helpers.
 - `tests/`: Node built-in test suite for shared behavior.
+- `scripts/`: `share.mjs` (CLI upload), `e2e.mjs` (boots wrangler and asserts real headers/auth).
+- `skills/share-html/`: agent-facing entry point for the CLI.
 - `wrangler.example.toml`: example Cloudflare Pages and KV binding config; copy to ignored `wrangler.toml` for local deploys.
 
 ## Build / test / lint
@@ -21,6 +23,8 @@ Password-protected HTML sharing on Cloudflare Pages. Runtime is Pages Functions 
 - dev: `npm run dev`
 - test: `npm test`
 - syntax check: `npm run check`
+- e2e (real runtime headers and auth): `npm run e2e`
+- full gate: `npm run verify`
 - deploy: `npm run deploy`
 
 ## Repo-specific hard rules
@@ -28,14 +32,16 @@ Password-protected HTML sharing on Cloudflare Pages. Runtime is Pages Functions 
 - Inherits all Hard Rules from `~/work/agent-context/AGENTS.MD`.
 - Inherits all Constitutional rules from `~/work/agent-context/CONSTITUTION.md`. If a rule below contradicts the constitution, the constitution wins.
 - Never commit Cloudflare tokens, KV IDs beyond namespace identifiers, or admin passwords. Configure `ADMIN_TOKEN` through Cloudflare Pages secrets.
-- Uploaded HTML is intentionally rendered inline after password verification; do not add sanitization that rewrites customer HTML unless the product goal changes.
+- Uploaded HTML is intentionally rendered inline after password verification; do not add sanitization that rewrites customer HTML unless the product goal changes. The isolation boundary is the `sandbox` CSP in `functions/_lib/share.js`, not sanitization — never add `allow-same-origin` to it.
+- Every share carries a TTL. `env.HTML_SHARES.put` on an existing record must go through `putOptions()`, otherwise the rewrite silently turns an expiring share into a permanent one.
 - Keep upload size below Workers KV's value limit. The app currently rejects payloads above 24 MiB.
 - Keep `wrangler.toml` ignored unless the operator explicitly wants environment-specific namespace IDs committed.
 
 ## Verification
 
-- `npm run check`
-- `npm test`
+- `npm run verify` (check + unit + real-runtime e2e). Unit tests alone never clear a change to
+  headers, auth, or KV writes — the e2e is the one that sees them.
+- Verification matrix and the optimization loop: `docs/optimization-plan-2026-08-16.md`.
 
 ## Drift guard
 

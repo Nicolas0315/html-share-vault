@@ -6,11 +6,21 @@ Production: https://html-share-vault.pages.dev/
 
 ## What it does
 
-- Admin uploads a `.html` file from `/`.
-- The app stores the HTML and password hash in a Cloudflare KV namespace.
+- Admin uploads a `.html` file from `/`, or from a terminal with `npm run share`.
+- The app stores the HTML and password hash in a Cloudflare KV namespace with a TTL.
 - The admin shares `/share/<id>` and the viewer password.
 - Viewers enter the password and then see the uploaded HTML rendered inline.
 - Admin manages uploaded shares from `/admin/`.
+- Shares expire: 7 days by default, 90 days maximum. There is no unlimited share.
+
+## CLI
+
+```bash
+export HTML_SHARE_ADMIN_TOKEN=...        # same value as the ADMIN_TOKEN Pages secret
+npm run share -- ./report.html --days 7  # prints url, generated password, expiry
+```
+
+`HTML_SHARE_BASE_URL` overrides the target (defaults to the production project).
 
 ## Admin dashboard
 
@@ -63,7 +73,10 @@ Use the same admin token value in the upload form.
 
 ## Security notes
 
-- This is for trusted internal HTML review. Uploaded HTML is rendered as HTML, so only upload files you trust.
+- Uploaded HTML is rendered unmodified, but served with `Content-Security-Policy: sandbox allow-scripts`
+  and no `allow-same-origin`. The browser puts it in an opaque origin, so a share cannot read the admin
+  token, the access cookie, or any other share on the same domain. Verified with `npm run e2e`.
+- The static and admin pages carry their own strict CSP from `public/_headers`.
 - The viewer password is never stored directly; the app stores a salted PBKDF2-SHA-256 hash.
 - Viewer passwords must be at least 14 characters.
 - PBKDF2 uses 10,000 iterations to fit Cloudflare Workers free-tier CPU limits. Treat this as a low-to-medium sensitivity internal sharing tool; use a paid Workers plan or a stronger storage/auth design for highly confidential material.

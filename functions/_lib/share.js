@@ -1,6 +1,18 @@
 const MAX_HTML_BYTES = 24 * 1024 * 1024;
 const PASSWORD_COOKIE_MAX_AGE = 60 * 60 * 8;
 const PASSWORD_ITERATIONS = 10000;
+const DEFAULT_EXPIRY_DAYS = 7;
+const MAX_EXPIRY_DAYS = 90;
+const MIN_KV_TTL_SECONDS = 60;
+
+// Uploaded HTML is arbitrary script running on the same origin as /admin/ and every
+// other /share/<id>. `sandbox` without allow-same-origin drops it into an opaque
+// origin, so it cannot read the admin token, the access cookie, or a sibling share.
+export const SHARE_CSP = [
+  "sandbox allow-scripts allow-popups allow-downloads",
+  "frame-ancestors 'none'",
+  "base-uri 'none'"
+].join("; ");
 
 export function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -45,6 +57,45 @@ export function assertValidHtmlUpload({ html, password }) {
     return "password must be at least 14 characters";
   }
   return "";
+}
+
+export function resolveExpiry(expiresInDays, now = new Date()) {
+  const raw = expiresInDays === undefined || expiresInDays === null || expiresInDays === ""
+    ? DEFAULT_EXPIRY_DAYS
+    : Number(expiresInDays);
+  if (!Number.isInteger(raw) || raw < 1 || raw > MAX_EXPIRY_DAYS) {
+    return { error: `expiresInDays must be an integer between 1 and ${MAX_EXPIRY_DAYS}` };
+  }
+  const ttlSeconds = raw * 24 * 60 * 60;
+  return { ttlSeconds, expiresAt: new Date(now.getTime() + ttlSeconds * 1000).toISOString() };
+}
+
+// KV put() replaces the whole entry: a rewrite without expirationTtl silently turns a
+// expiring share into a permanent one. Every put on an existing record must pass this.
+export function remainingTtlSeconds(expiresAt, now = new Date()) {
+  if (!expiresAt) return undefined;
+  const seconds = Math.floor((new Date(expiresAt).getTime() - now.getTime()) / 1000);
+  return Number.isFinite(seconds) ? Math.max(MIN_KV_TTL_SECONDS, seconds) : undefined;
+}
+
+export function putOptions(record) {
+  const ttl = remainingTtlSeconds(record.expiresAt);
+  return ttl === undefined
+    ? { metadata: buildShareMetadata(record) }
+    : { metadata: buildShareMetadata(record), expirationTtl: ttl };
+}
+
+export function shareHtmlHeaders(record, extra = {}) {
+  return {
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "private, no-store",
+    "content-security-policy": SHARE_CSP,
+    "x-content-type-options": "nosniff",
+    "referrer-policy": "no-referrer",
+    "x-robots-tag": "noindex, nofollow, noarchive",
+    "content-disposition": `inline; filename="${record.fileName.replaceAll('"', "")}"`,
+    ...extra
+  };
 }
 
 export function normalizeFileName(fileName) {
@@ -100,7 +151,7 @@ export async function pbkdf2Hex(password, saltHex, iterations = PASSWORD_ITERATI
   return bytesToHex(new Uint8Array(bits));
 }
 
-export async function buildShareRecord({ fileName, html, password, now = new Date() }) {
+export async function buildShareRecord({ fileName, html, password, expiresAt, now = new Date() }) {
   const id = createShareId();
   const salt = createShareId();
   return {
@@ -111,7 +162,8 @@ export async function buildShareRecord({ fileName, html, password, now = new Dat
     passwordHash: await pbkdf2Hex(password, salt),
     passwordAlgorithm: "PBKDF2-SHA-256",
     passwordIterations: PASSWORD_ITERATIONS,
-    createdAt: now.toISOString()
+    createdAt: now.toISOString(),
+    expiresAt: expiresAt || resolveExpiry(undefined, now).expiresAt
   };
 }
 
@@ -122,6 +174,7 @@ export function buildShareMetadata(record) {
     createdAt: record.createdAt,
     updatedAt: record.updatedAt || record.createdAt,
     passwordUpdatedAt: record.passwordUpdatedAt || record.createdAt,
+    expiresAt: record.expiresAt || "",
     bytes: new TextEncoder().encode(record.html || "").length
   };
 }

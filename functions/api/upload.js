@@ -1,9 +1,10 @@
 import {
   assertValidHtmlUpload,
-  buildShareMetadata,
   buildShareRecord,
   getBearerToken,
   json,
+  putOptions,
+  resolveExpiry,
   timingSafeEqualString
 } from "../_lib/share.js";
 
@@ -29,11 +30,14 @@ export async function onRequestPost({ request, env }) {
     return json({ error }, 400);
   }
 
-  const record = await buildShareRecord(body);
+  const expiry = resolveExpiry(body.expiresInDays);
+  if (expiry.error) {
+    return json({ error: expiry.error }, 400);
+  }
+
+  const record = await buildShareRecord({ ...body, expiresAt: expiry.expiresAt });
   try {
-    await env.HTML_SHARES.put(record.id, JSON.stringify(record), {
-      metadata: buildShareMetadata(record)
-    });
+    await env.HTML_SHARES.put(record.id, JSON.stringify(record), putOptions(record));
   } catch {
     return json({ error: "storage error" }, 500);
   }
@@ -42,7 +46,8 @@ export async function onRequestPost({ request, env }) {
     id: record.id,
     url: `/share/${record.id}`,
     fileName: record.fileName,
-    createdAt: record.createdAt
+    createdAt: record.createdAt,
+    expiresAt: record.expiresAt
   }, 201);
 }
 
