@@ -69,3 +69,7 @@ Use the same admin token value in the upload form.
 - PBKDF2 uses 10,000 iterations to fit Cloudflare Workers free-tier CPU limits. Treat this as a low-to-medium sensitivity internal sharing tool; use a paid Workers plan or a stronger storage/auth design for highly confidential material.
 - Access is remembered for 8 hours with an HttpOnly cookie.
 - KV values are limited to 25 MiB, so this app rejects uploads above 24 MiB.
+
+- [Documentation](docs/)
+
+- [Repository hygiene](.gitignore)
