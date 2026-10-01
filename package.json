@@ -10,6 +10,6 @@
     "check": "node --check functions/api/upload.js && node --check functions/api/admin/shares.js && node --check functions/api/admin/shares/[id].js && node --check functions/share/[id].js && node --check functions/_lib/share.js"
   },
   "devDependencies": {
-    "wrangler": "^4.135.0"
+    "wrangler": "^4.144.0"
   }
 }
