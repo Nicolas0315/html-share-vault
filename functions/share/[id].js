@@ -36,7 +36,7 @@ export async function onRequestGet({ request, env, params }) {
     return new Response("Not found", { status: 404 });
   }
 
-  if (hasAccessCookie(request, record.id, record.passwordHash)) {
+  if (await hasAccessCookie(request, record.id, record.passwordHash, env.ADMIN_TOKEN)) {
     return htmlResponse(record);
   }
 
@@ -60,7 +60,7 @@ export async function onRequestPost({ request, env, params }) {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "private, no-store",
       "content-disposition": `inline; filename="${record.fileName.replaceAll('"', "")}"`,
-      "set-cookie": buildAccessCookie(record.id, record.passwordHash)
+      "set-cookie": await buildAccessCookie(record.id, record.passwordHash, env.ADMIN_TOKEN)
     }
   });
 }

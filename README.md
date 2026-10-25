@@ -67,7 +67,7 @@ Use the same admin token value in the upload form.
 - The viewer password is never stored directly; the app stores a salted PBKDF2-SHA-256 hash.
 - Viewer passwords must be at least 14 characters.
 - PBKDF2 uses 10,000 iterations to fit Cloudflare Workers free-tier CPU limits. Treat this as a low-to-medium sensitivity internal sharing tool; use a paid Workers plan or a stronger storage/auth design for highly confidential material.
-- Access is remembered for 8 hours with an HttpOnly cookie.
+- Access is remembered for 8 hours with a signed HttpOnly cookie. The server verifies its expiry and binds it to the share and current password. `ADMIN_TOKEN` remains server-only and signs these cookies; rotating it also invalidates viewer sessions. Legacy raw-hash cookies are rejected, so existing viewers must enter their password once after upgrading.
 - KV values are limited to 25 MiB, so this app rejects uploads above 24 MiB.
 
 - [Documentation](docs/)
