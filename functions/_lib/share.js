@@ -152,9 +152,22 @@ export async function isPasswordValid(record, password) {
   return timingSafeEqualString(hash, record.passwordHash);
 }
 
-export function buildAccessCookie(id, passwordHash) {
+async function accessSignature(id, passwordHash, expires, secret) {
+  if (typeof secret !== "string" || !secret) throw new Error("session signing key is required");
+  const key = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC", key, new TextEncoder().encode(JSON.stringify([id, passwordHash, expires]))
+  );
+  return bytesToHex(new Uint8Array(signature));
+}
+
+export async function buildAccessCookie(id, passwordHash, secret, now = Date.now()) {
+  const expires = now + PASSWORD_COOKIE_MAX_AGE * 1000;
+  const signature = await accessSignature(id, passwordHash, expires, secret);
   return [
-    `html_share_${id}=${passwordHash}`,
+    `html_share_${id}=${expires}.${signature}`,
     "Path=/share/",
     `Max-Age=${PASSWORD_COOKIE_MAX_AGE}`,
     "HttpOnly",
@@ -163,10 +176,19 @@ export function buildAccessCookie(id, passwordHash) {
   ].join("; ");
 }
 
-export function hasAccessCookie(request, id, passwordHash) {
-  const cookie = request.headers.get("cookie") || "";
-  const expected = `html_share_${id}=${passwordHash}`;
-  return cookie.split(/;\s*/).some((part) => timingSafeEqualString(part, expected));
+export async function hasAccessCookie(request, id, passwordHash, secret, now = Date.now()) {
+  if (typeof secret !== "string" || !secret) return false;
+  const prefix = `html_share_${id}=`;
+  const part = (request.headers.get("cookie") || "").split(/;\s*/).find((item) => item.startsWith(prefix));
+  if (!part) return false;
+  const match = part.slice(prefix.length).match(/^(\d{1,16})\.([0-9a-f]{64})$/);
+  if (!match) return false;
+  const expires = Number(match[1]);
+  if (!Number.isSafeInteger(expires) || expires <= now) {
+    return false;
+  }
+  const expected = await accessSignature(id, passwordHash, expires, secret);
+  return timingSafeEqualString(match[2], expected);
 }
 
 export function passwordForm(id, error = "") {
