@@ -184,7 +184,7 @@ export async function hasAccessCookie(request, id, passwordHash, secret, now = D
   const match = part.slice(prefix.length).match(/^(\d{1,16})\.([0-9a-f]{64})$/);
   if (!match) return false;
   const expires = Number(match[1]);
-  if (!Number.isSafeInteger(expires) || expires <= now || expires > now + PASSWORD_COOKIE_MAX_AGE * 1000) {
+  if (!Number.isSafeInteger(expires) || expires <= now) {
     return false;
   }
   const expected = await accessSignature(id, passwordHash, expires, secret);
