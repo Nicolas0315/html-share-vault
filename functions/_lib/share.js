@@ -34,6 +34,13 @@ export function timingSafeEqualString(a, b) {
   return diff === 0;
 }
 
+function validatePassword(password) {
+  if (typeof password !== "string" || password.length < 14) {
+    return "password must be at least 14 characters";
+  }
+  return "";
+}
+
 export function assertValidHtmlUpload({ html, password }) {
   if (typeof html !== "string" || html.trim() === "") {
     return "html is required";
@@ -41,10 +48,7 @@ export function assertValidHtmlUpload({ html, password }) {
   if (new TextEncoder().encode(html).length > MAX_HTML_BYTES) {
     return "html exceeds the 24 MiB upload limit";
   }
-  if (typeof password !== "string" || password.length < 14) {
-    return "password must be at least 14 characters";
-  }
-  return "";
+  return validatePassword(password);
 }
 
 export function normalizeFileName(fileName) {
@@ -61,7 +65,7 @@ export function isValidShareId(id) {
 export function createShareId(randomValues = crypto.getRandomValues.bind(crypto)) {
   const bytes = new Uint8Array(16);
   randomValues(bytes);
-  return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return bytesToHex(bytes);
 }
 
 export function bytesToHex(bytes) {
@@ -100,17 +104,22 @@ export async function pbkdf2Hex(password, saltHex, iterations = PASSWORD_ITERATI
   return bytesToHex(new Uint8Array(bits));
 }
 
-export async function buildShareRecord({ fileName, html, password, now = new Date() }) {
-  const id = createShareId();
+async function hashPasswordFields(password) {
   const salt = createShareId();
   return {
-    id,
-    fileName: normalizeFileName(fileName),
-    html,
     passwordSalt: salt,
     passwordHash: await pbkdf2Hex(password, salt),
     passwordAlgorithm: "PBKDF2-SHA-256",
-    passwordIterations: PASSWORD_ITERATIONS,
+    passwordIterations: PASSWORD_ITERATIONS
+  };
+}
+
+export async function buildShareRecord({ fileName, html, password, now = new Date() }) {
+  return {
+    id: createShareId(),
+    fileName: normalizeFileName(fileName),
+    html,
+    ...(await hashPasswordFields(password)),
     createdAt: now.toISOString()
   };
 }
@@ -127,23 +136,24 @@ export function buildShareMetadata(record) {
 }
 
 export async function updateRecordPassword(record, password, now = new Date()) {
-  const error = assertValidHtmlUpload({ html: record.html || "<html></html>", password });
-  if (error && error.startsWith("password")) {
+  const error = validatePassword(password);
+  if (error) {
     return { error };
   }
 
-  const salt = createShareId();
   return {
     record: {
       ...record,
-      passwordSalt: salt,
-      passwordHash: await pbkdf2Hex(password, salt),
-      passwordAlgorithm: "PBKDF2-SHA-256",
-      passwordIterations: PASSWORD_ITERATIONS,
+      ...(await hashPasswordFields(password)),
       passwordUpdatedAt: now.toISOString(),
       updatedAt: now.toISOString()
     }
   };
+}
+
+export async function loadShareRecord(env, id) {
+  const raw = await env.HTML_SHARES.get(id);
+  return raw ? JSON.parse(raw) : null;
 }
 
 export async function isPasswordValid(record, password) {
