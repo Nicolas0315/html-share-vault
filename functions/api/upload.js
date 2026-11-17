@@ -2,9 +2,8 @@ import {
   assertValidHtmlUpload,
   buildShareMetadata,
   buildShareRecord,
-  getBearerToken,
-  json,
-  timingSafeEqualString
+  isAdminRequest,
+  json
 } from "../_lib/share.js";
 
 export async function onRequestPost({ request, env }) {
@@ -12,8 +11,7 @@ export async function onRequestPost({ request, env }) {
     return json({ error: "ADMIN_TOKEN is not configured" }, 500);
   }
 
-  const suppliedToken = getBearerToken(request);
-  if (!timingSafeEqualString(suppliedToken, env.ADMIN_TOKEN)) {
+  if (!isAdminRequest(request, env)) {
     return json({ error: "unauthorized" }, 401);
   }
 
