@@ -122,3 +122,70 @@ test("share route requires a valid session and rejects it after password rotatio
   record = (await updateRecordPassword(record, "replacement-password-123")).record;
   assert.match(await (await get(cookie)).text(), /Password required/);
 });
+
+function memoryKv(initial = {}) {
+  const store = new Map(Object.entries(initial));
+  return {
+    store,
+    get: async (key) => store.get(key) ?? null,
+    put: async (key, value) => { store.set(key, value); },
+    delete: async (key) => { store.delete(key); }
+  };
+}
+
+test("upload route checks admin token configuration, auth and input before storing", async () => {
+  const { onRequestPost } = await import("../functions/api/upload.js");
+  const post = (env, body, token = "synthetic-admin-token") => onRequestPost({
+    request: new Request("https://example.com/api/upload", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+      body
+    }),
+    env
+  });
+  const valid = JSON.stringify({ fileName: "demo.html", html: "<h1>x</h1>", password: "long-password-123" });
+  const kv = memoryKv();
+  const env = { ADMIN_TOKEN: "synthetic-admin-token", HTML_SHARES: kv };
+
+  assert.equal((await post({ HTML_SHARES: kv }, valid)).status, 500);
+  assert.equal((await post(env, valid, "wrong-token")).status, 401);
+  assert.equal((await post(env, "{")).status, 400);
+  assert.deepEqual(await (await post(env, JSON.stringify({ html: "<h1>x</h1>", password: "short" }))).json(), {
+    error: "password must be at least 14 characters"
+  });
+  assert.equal(kv.store.size, 0);
+
+  const created = await post(env, valid);
+  assert.equal(created.status, 201);
+  const data = await created.json();
+  assert.equal(data.url, `/share/${data.id}`);
+  assert.equal(isValidShareId(data.id), true);
+  const stored = JSON.parse(kv.store.get(data.id));
+  assert.equal(await isPasswordValid(stored, "long-password-123"), true);
+});
+
+test("admin password update rejects short passwords and stores a new hash", async () => {
+  const { onRequestPatch } = await import("../functions/api/admin/shares/[id].js");
+  const record = await buildShareRecord({ fileName: "demo.html", html: "<h1>x</h1>", password: "long-password-123" });
+  const kv = memoryKv({ [record.id]: JSON.stringify(record) });
+  const env = { ADMIN_TOKEN: "synthetic-admin-token", HTML_SHARES: kv };
+  const patch = (id, password) => onRequestPatch({
+    request: new Request(`https://example.com/api/admin/shares/${id}`, {
+      method: "PATCH",
+      headers: { authorization: "Bearer synthetic-admin-token" },
+      body: JSON.stringify({ password })
+    }),
+    env,
+    params: { id }
+  });
+
+  assert.equal((await patch("f".repeat(32), "new-long-password-456")).status, 404);
+  const rejected = await patch(record.id, "short");
+  assert.equal(rejected.status, 400);
+  assert.deepEqual(await rejected.json(), { error: "password must be at least 14 characters" });
+  assert.equal((await patch(record.id, "new-long-password-456")).status, 200);
+  const stored = JSON.parse(kv.store.get(record.id));
+  assert.equal(await isPasswordValid(stored, "new-long-password-456"), true);
+  assert.equal(stored.passwordIterations, record.passwordIterations);
+  assert.equal(stored.html, record.html);
+});
