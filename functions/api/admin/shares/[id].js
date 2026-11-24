@@ -3,13 +3,9 @@ import {
   isAdminRequest,
   isValidShareId,
   json,
+  loadShareRecord,
   updateRecordPassword
 } from "../../../_lib/share.js";
-
-async function loadRecord(env, id) {
-  const raw = await env.HTML_SHARES.get(id);
-  return raw ? JSON.parse(raw) : null;
-}
 
 export async function onRequestDelete({ request, env, params }) {
   if (!isAdminRequest(request, env)) {
@@ -38,7 +34,7 @@ export async function onRequestPatch({ request, env, params }) {
     return json({ error: "invalid json" }, 400);
   }
 
-  const record = await loadRecord(env, params.id);
+  const record = await loadShareRecord(env, params.id);
   if (!record) {
     return json({ error: "not found" }, 404);
   }

@@ -58,10 +58,15 @@ export function isValidShareId(id) {
   return typeof id === "string" && /^[0-9a-f]{32}$/.test(id);
 }
 
+export async function loadShareRecord(env, id) {
+  const raw = await env.HTML_SHARES.get(id);
+  return raw ? JSON.parse(raw) : null;
+}
+
 export function createShareId(randomValues = crypto.getRandomValues.bind(crypto)) {
   const bytes = new Uint8Array(16);
   randomValues(bytes);
-  return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return bytesToHex(bytes);
 }
 
 export function bytesToHex(bytes) {

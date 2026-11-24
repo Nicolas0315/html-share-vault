@@ -2,13 +2,9 @@ import {
   buildAccessCookie,
   hasAccessCookie,
   isPasswordValid,
+  loadShareRecord,
   passwordForm
 } from "../_lib/share.js";
-
-async function loadRecord(env, id) {
-  const raw = await env.HTML_SHARES.get(id);
-  return raw ? JSON.parse(raw) : null;
-}
 
 function formResponse(id, error = "", status = 200) {
   return new Response(passwordForm(id, error), {
@@ -20,18 +16,19 @@ function formResponse(id, error = "", status = 200) {
   });
 }
 
-function htmlResponse(record) {
+function htmlResponse(record, extraHeaders = {}) {
   return new Response(record.html, {
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "private, no-store",
-      "content-disposition": `inline; filename="${record.fileName.replaceAll('"', "")}"`
+      "content-disposition": `inline; filename="${record.fileName.replaceAll('"', "")}"`,
+      ...extraHeaders
     }
   });
 }
 
 export async function onRequestGet({ request, env, params }) {
-  const record = await loadRecord(env, params.id);
+  const record = await loadShareRecord(env, params.id);
   if (!record) {
     return new Response("Not found", { status: 404 });
   }
@@ -44,7 +41,7 @@ export async function onRequestGet({ request, env, params }) {
 }
 
 export async function onRequestPost({ request, env, params }) {
-  const record = await loadRecord(env, params.id);
+  const record = await loadShareRecord(env, params.id);
   if (!record) {
     return new Response("Not found", { status: 404 });
   }
@@ -55,13 +52,8 @@ export async function onRequestPost({ request, env, params }) {
     return formResponse(record.id, "パスワードが違います。", 401);
   }
 
-  return new Response(record.html, {
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "cache-control": "private, no-store",
-      "content-disposition": `inline; filename="${record.fileName.replaceAll('"', "")}"`,
-      "set-cookie": await buildAccessCookie(record.id, record.passwordHash, env.ADMIN_TOKEN)
-    }
+  return htmlResponse(record, {
+    "set-cookie": await buildAccessCookie(record.id, record.passwordHash, env.ADMIN_TOKEN)
   });
 }
 
